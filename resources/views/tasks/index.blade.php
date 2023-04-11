@@ -8,9 +8,14 @@
       <div class="py-12">
           <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
               <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                  <div class="p-6 bg-white border-b border-gray-200">
+                  <div class="relative p-6 bg-white border-b border-gray-200">
                       <h1 class="border-solid border-b border-gray-700 m-1 w-52 text-center text-lg font-bold">Mon
                           Tableau de Tâches</h1>
+                      @if (session('message'))
+                          <div class="absolute top-0 right-0 py-2 px-10 uppercase text-black">
+                              {{ session('message') }}
+                          </div>
+                      @endif
                       <button
                           class="border-solid border border-gray-700 rounded-xl px-1 py-1 m-2 w-32 font-bold hover:bg-green-600"
                           type="button"><a href="/tasks/create">Nouvelle Tâche</a></button>

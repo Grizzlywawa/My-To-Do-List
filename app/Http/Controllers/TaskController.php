@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TaskController extends Controller
 {
@@ -14,10 +15,13 @@ class TaskController extends Controller
      */
     public function index() //sert à charger toutes les tâches
     {
-        $tasks = Task::all(); // variable tasks montre toute les colonnes de la table Task
+        //$tasks = Tasks::all(); sélectionne toutes les tâches de la table tâche
+        $user = Auth::user(); //vérifie quel est ulitisateur connecté
+        //$tasks = Task::where('user_id', $user->id)->get(); //je récupère les tâches de l'utilisateur connecté
+        $tasks=$user->tasks()->get(); // variation de la ligne du dessus qui est faite grâce à la fonction de tâche Model
         return view('tasks.index', [
             'tasks' => $tasks
-        ]); //retourne la vue index de la variable tasks 
+        ]); //retourne la vue indexde la variable tasks 
     }
 
     /**
@@ -44,8 +48,10 @@ class TaskController extends Controller
         $task->lieu = $request->lieu;
         $task->dueDate = $request->date;
         $task->status = 0;
+        //$task->user_id = Auth::id();
+        $task->user()->associate(Auth::user()); //associe l'utilisateur conecté à la tâche
         $task->save();
-        return redirect()->route('tasks.index');
+        return redirect()->route('tasks.index')->with(['message'=>'Nouvelle tâche créée']);
     }
 
     /**
@@ -56,12 +62,12 @@ class TaskController extends Controller
      */
     public function show(Task $task) //affiche 
     {
-        if ($task) {
+        if ($task->user_id == Auth::id()) {//vérfie que la tâche dempandée est bien celle de l'user connecté
             return view('tasks.show', [
                 'task' => $task
             ]);
         } else {
-            return back();
+            return redirect()->route('tasks.index')->with(['message'=>'Non, môsieur !']);
         }
 
     }
@@ -74,10 +80,13 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
+        if ($task->user_id==Auth::id()){
         return view('tasks.form', [
             'task' => $task
         ]);
-
+    }else{
+        return redirect()->route('tasks.index')->with(['message'=>'Non, mösieur !']);
+    }
 
     }
 
@@ -90,12 +99,16 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
+        if($task->user_id==Auth::id()){
         $task->title = $request->title;
         $task->description = $request->description;
         $task->lieu = $request->lieu;
         $task->dueDate = $request->date;
         $task->save();
-        return redirect()->route('tasks.index');
+        return redirect()->route('tasks.index')->with(['message' => 'tâche modifiée avec succès']);}
+        else{
+            return redirect()->route('tasks.index')->with(['message'=>'Non, môsieur !']);
+        }
     }
 
     /**
@@ -106,9 +119,9 @@ class TaskController extends Controller
      */
     public function destroy(Task $task) //$task est un paramètre de Task
     {
-        if ($task) {
+        if ($task->user_id==Auth::id()) {
             $task->delete();
-            return redirect()->route('tasks.index');
+            return redirect()->route('tasks.index')->with(['message'=>'La tâche a bien été supprimée']);
         } else {
             return redirect()->route('tasks.index');
         }
